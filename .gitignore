@@ -1,0 +1,8 @@
+# Ignorer les fichiers CSV
+*.csv
+
+# Fichiers générés par Python/IDE
+__pycache__/
+.env
+.venv/
+*.pyc
