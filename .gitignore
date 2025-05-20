@@ -4,5 +4,7 @@
 # Fichiers générés par Python/IDE
 __pycache__/
 .env
-.venv/
+venv/
 *.pyc
+
+.idea
