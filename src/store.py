@@ -2,7 +2,7 @@ from datetime import date
 
 import numpy as np
 
-from fake_data_app.sensor import VisitSensor
+from src.sensor import VisitSensor
 
 
 class StoreSensor:
