@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from src import create_app
+from .import create_app
 
 store_dict = create_app()
 app = FastAPI()
