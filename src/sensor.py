@@ -75,7 +75,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         year, month, day = [int(v) for v in sys.argv[1].split("-")]
     else:
-        year, month, day = 2023, 10, 25
+        year, month, day = 2023, 11, 1
     queried_date = date(year, month, day)
 
     capteur = VisitSensor(1500, 150)
