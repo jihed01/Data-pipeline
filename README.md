@@ -128,9 +128,9 @@ anomalie = abs(pct_change) > 50
 ### Format de Données
 
 #### Données d'Entrée (CSV)
-```csv
+```csvdétail
 date,heure,id_du_magasin,id_du_capteur,nombre_de_visiteurs
-2025-02-04,00:00:00,Lille,-1,999999
+2025-02-04,00:00:00,Lille,3,125  # Exemple avec un ID de capteur valide (0-7)
 ```
 
 #### Données de Sortie (Parquet)
@@ -138,7 +138,7 @@ date,heure,id_du_magasin,id_du_capteur,nombre_de_visiteurs
 {
     'date': datetime,
     'id_du_magasin': str,
-    'id_du_capteur': int,
+    'id_du_capteur': int,          # Valeurs normalisées entre 0-7
     'trafic_journalier': int,
     'moyenne_mobile_4_semaines': float,
     'pct_change': float,
@@ -249,13 +249,6 @@ assert df['trafic_journalier'].min() >= 0
 assert df['pct_change'].between(-100, 200).all()
 ```
 
-### Tests d'Intégration
-
-```bash
-# Test complet de la pipeline
-python tests/test_full_pipeline.py
-```
-
 ## 🚀 Déploiement
 
 ### Environnement Local
@@ -266,30 +259,7 @@ python tests/test_full_pipeline.py
 4. Exécuter le traitement des données
 5. Lancer Streamlit
 
-### Environnement de Production
-
-```bash
-# Docker
-docker build -t traffic-analytics .
-docker run -p 8501:8501 traffic-analytics
-
-# Kubernetes
-kubectl apply -f k8s/deployment.yaml
-```
-
-## 📈 Monitoring et Observabilité
-
-### Métriques Système
-- Temps de traitement des données
-- Utilisation mémoire/CPU
-- Taux d'erreur des API
-
-### Métriques Métier
-- Nombre d'anomalies détectées par jour
-- Couverture des données par magasin
-- Latence des visualisations
-
 ---------------
-**Dernière mise à jour** : 26 juin 2025  
+**Dernière mise à jour** :  1 juillet 2025  
 **Version** : 1.0.0  
 **Statut** : Production Ready ✅
