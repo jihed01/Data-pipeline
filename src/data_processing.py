@@ -8,6 +8,24 @@ import numpy as np
 
 raw_data_path = "./data/raw"
 
+
+def validate_sensor_ids(df: pd.DataFrame) -> pd.DataFrame:
+    """Filtre les IDs de capteurs valides (0-7) et log les anomalies"""
+    initial_count = len(df)
+    valid_ids = df["id_du_capteur"].between(0, 7)
+
+    if not valid_ids.all():
+        invalid_df = df[~valid_ids]
+        invalid_counts = invalid_df["id_du_capteur"].value_counts()
+        print(f"\n⚠️ Capteurs invalides détectés et filtrés:")
+        print(invalid_counts.to_string())
+
+        # Sauvegarder les anomalies pour inspection
+        os.makedirs("./data/anomalies", exist_ok=True)
+        invalid_df.to_csv("./data/anomalies/invalid_sensor_records.csv", index=False)
+
+    return df[valid_ids].copy()
+
 def get_visitor_csv_files(raw_data_path: str) -> List[Path]:
     raw_dir = Path(raw_data_path)
     if not raw_dir.is_dir():
@@ -17,18 +35,26 @@ def get_visitor_csv_files(raw_data_path: str) -> List[Path]:
         raise FileNotFoundError(f"No CSV files matching pattern 'visiteurs_*.csv' found in {raw_dir}")
     return csv_files
 
+
 def load_and_merge_data(raw_data_path: str) -> pd.DataFrame:
     csv_files = get_visitor_csv_files(raw_data_path)
     dfs = []
     for file in csv_files:
         try:
             df = pd.read_csv(file)
+            # Convertir et valider les IDs de capteur dès le chargement
+            df["id_du_capteur"] = pd.to_numeric(df["id_du_capteur"], errors='coerce')
             dfs.append(df)
         except Exception as e:
-             print(f"Error loading {file.name}: {str(e)}")
+            print(f"Error loading {file.name}: {str(e)}")
+
     combined_df = pd.concat(dfs, ignore_index=True)
     combined_df["date"] = pd.to_datetime(combined_df["date"])
+
+    # Valider les IDs avant le tri
+    combined_df = validate_sensor_ids(combined_df)
     combined_df.sort_values(["date", "id_du_capteur", "id_du_magasin"], inplace=True)
+
     return combined_df
 
 # Step 1: Lecture et Fusion des Données CSV
@@ -43,7 +69,7 @@ except Exception as e:
 
 # Step 2: Agrégation Journalisée
 df_combined["heure"] = pd.to_datetime(df_combined["heure"]).dt.time
-df_combined["id_du_capteur"] = df_combined["id_du_capteur"].fillna(-1).astype(int) # Handle missing sensor IDs
+df_combined["id_du_capteur"] = df_combined["id_du_capteur"].astype(int) # Handle missing sensor IDs
 df_combined["nombre_visiteurs"] = pd.to_numeric(df_combined["nombre_visiteurs"], errors='coerce').fillna(0) # Handle non-numeric and NaN values
 df_combined["nombre_visiteurs"] = df_combined["nombre_visiteurs"].apply(lambda x: max(0, x)) # Ensure no negative visitors
 
@@ -85,7 +111,7 @@ print("\nDétection d'Anomalies (premières lignes avec pct_change):")
 print(df_daily_traffic.head())
 
 # Step 5: Exportation au Format Parquet
-output_dir = "/home/ubuntu/Data-pipeline/data/filtered"
+output_dir = "./data/filtered"
 os.makedirs(output_dir, exist_ok=True)
 output_file = os.path.join(output_dir, "daily_traffic_anomalies.parquet")
 df_daily_traffic.to_parquet(output_file, index=False)

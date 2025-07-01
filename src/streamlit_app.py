@@ -20,10 +20,16 @@ st.markdown("---")
 # Fonction pour charger les données
 @st.cache_data
 def load_data():
-    """Charge les données depuis le fichier Parquet"""
+    """Charge les données avec validation des capteurs"""
     data_path = "/home/ubuntu/Data-pipeline/data/filtered/daily_traffic_anomalies.parquet"
     if os.path.exists(data_path):
-        return pd.read_parquet(data_path)
+        df = pd.read_parquet(data_path)
+        # Filtrer une seconde fois par sécurité
+        valid_sensors = df["id_du_capteur"].between(0, 7)
+        if not valid_sensors.all():
+            st.warning("Certains capteurs invalides ont été détectés et filtrés")
+            df = df[valid_sensors].copy()
+        return df
     else:
         st.error(f"Fichier de données non trouvé: {data_path}")
         return None
